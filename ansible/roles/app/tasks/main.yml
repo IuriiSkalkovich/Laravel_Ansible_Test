@@ -24,6 +24,17 @@
   args:
     creates: "{{ app_dir }}/src/artisan"
 
+# КРИТИЧЕСКИ ВАЖНО: Выставляем права владельца www-data (id 33) на созданные root-ом папки Laravel
+- name: Fix storage and cache permissions
+  file:
+    path: "{{ item }}"
+    owner: "33"
+    group: "33"
+    recurse: yes
+  loop:
+    - "{{ app_dir }}/src/storage"
+    - "{{ app_dir }}/src/bootstrap/cache"
+
 - name: Render docker compose
   template:
     src: docker-compose.yml.j2
