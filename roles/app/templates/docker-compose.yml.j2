@@ -5,11 +5,11 @@ services:
     ports:
       - "{{ nginx_port }}:80"
     volumes:
-      - ./src:/var/www/html
-      - ./default.conf:/etc/nginx/conf.d/default.conf
+      - ./src:/var/www/html # Монтируем исходный код Laravel
+      - ./default.conf:/etc/nginx/conf.d/default.conf # Прокидываем конфиг хоста
     depends_on:
       app:
-        condition: service_started
+        condition: service_started # Ждем только запуск контейнера PHP-FPM
 
   app:
     build:
@@ -17,10 +17,10 @@ services:
       dockerfile: Dockerfile
     container_name: app
     volumes:
-      - ./src:/var/www/html
+      - ./src:/var/www/html # Монтируем код Laravel для обработки PHP-запросов
     depends_on:
       mysql:
-        condition: service_healthy
+        condition: service_healthy # Ждем полной готовности MySQL к коннектам
 
   mysql:
     image: mysql:{{ mysql_version }}
@@ -30,8 +30,8 @@ services:
       MYSQL_PASSWORD: {{ mysql_password }}
       MYSQL_ROOT_PASSWORD: {{ mysql_root_password }}
     volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
+      - mysql_data:/var/lib/mysql # Изолированный volume для сохранения данных БД
+    healthcheck: # Проверка готовности БД (чтобы Laravel не упал при старте)
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
       timeout: 3s
@@ -44,7 +44,7 @@ services:
       PMA_ABSOLUTE_URI: http://localhost/pma/
     depends_on:
       mysql:
-        condition: service_healthy
+        condition: service_healthy # Запуск только после готовности БД
 
 volumes:
-  mysql_data:
+  mysql_data: # Объявление  volume для MySQL
